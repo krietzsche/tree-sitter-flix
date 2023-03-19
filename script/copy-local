@@ -1,0 +1,3 @@
+#!/bin/sh
+cp -r ~/ws/vim/tree-sitter-flix/queries/flix/* ~/.local/share/nvim/lazy/nvim-treesitter/queries/flix/ 
+cp -r ~/ws/vim/tree-sitter-flix/parser.so ~/.local/share/nvim/lazy/nvim-treesitter/parser/flix.so 
