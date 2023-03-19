@@ -21,23 +21,23 @@ enum TokenType {
   WITH,
 };
 
-void *tree_sitter_scala_external_scanner_create() {
+void *tree_sitter_flix_external_scanner_create() {
   return createStack();
 }
 
-void tree_sitter_scala_external_scanner_destroy(void *p) {
+void tree_sitter_flix_external_scanner_destroy(void *p) {
   free(p);
 }
 
-void tree_sitter_scala_external_scanner_reset(void *p) {
+void tree_sitter_flix_external_scanner_reset(void *p) {
   resetStack(p);
 }
 
-unsigned tree_sitter_scala_external_scanner_serialize(void *p, char *buffer) {
+unsigned tree_sitter_flix_external_scanner_serialize(void *p, char *buffer) {
   return serialiseStack(p, buffer);
 }
 
-void tree_sitter_scala_external_scanner_deserialize(void *p, const char *b,
+void tree_sitter_flix_external_scanner_deserialize(void *p, const char *b,
                                                     unsigned n) {
   deserialiseStack(p, b, n);
 }
@@ -88,7 +88,7 @@ static bool scan_string_content(TSLexer *lexer, bool is_multiline, bool has_inte
   }
 }
 
-bool tree_sitter_scala_external_scanner_scan(void *payload, TSLexer *lexer,
+bool tree_sitter_flix_external_scanner_scan(void *payload, TSLexer *lexer,
                                              const bool *valid_symbols) {
   ScannerStack *stack = (ScannerStack *)payload;
   int prev = peekStack(stack);

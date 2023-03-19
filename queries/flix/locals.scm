@@ -14,16 +14,7 @@
 (binding
   name: (identifier) @local.definition)
 
-(val_definition
+(let_definition
   pattern: (identifier) @local.definition)
-
-(var_definition
-  pattern: (identifier) @local.definition)
-
-(val_declaration
-  name: (identifier) @local.definition)
-
-(var_declaration
-  name: (identifier) @local.definition)
 
 (identifier) @local.reference

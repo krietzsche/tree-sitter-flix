@@ -6,24 +6,13 @@
 (enum_definition
   name: (identifier) @type)
 
-(object_definition
-  name: (identifier) @type)
-
-(trait_definition
-  name: (identifier) @type)
-
-(full_enum_case
+(instance_definition
   name: (identifier) @type)
 
 (simple_enum_case
   name: (identifier) @type)
 
 ;; variables
-
-(class_parameter 
-  name: (identifier) @parameter)
-
-(self_type (identifier) @parameter)
 
 (interpolation (identifier) @none)
 (interpolation (block) @none)
@@ -35,19 +24,10 @@
 
 (type_identifier) @type
 
-;; val/var definitions/declarations
+;; let definitions/declarations
 
-(val_definition
+(let_definition
   pattern: (identifier) @variable)
-
-(var_definition
-  pattern: (identifier) @variable)
-
-(val_declaration
-  name: (identifier) @variable)
-
-(var_declaration
-  name: (identifier) @variable)
 
 ; method definition
 
@@ -57,21 +37,13 @@
 (function_definition
       name: (identifier) @method)
 
-; imports/exports
+; imports
 
 (import_declaration
   path: (identifier) @namespace)
 ((stable_identifier (identifier) @namespace))
 
 ((import_declaration
-  path: (identifier) @type) (#lua-match? @type "^[A-Z]"))
-((stable_identifier (identifier) @type) (#lua-match? @type "^[A-Z]"))
-
-(export_declaration
-  path: (identifier) @namespace)
-((stable_identifier (identifier) @namespace))
-
-((export_declaration
   path: (identifier) @type) (#lua-match? @type "^[A-Z]"))
 ((stable_identifier (identifier) @type) (#lua-match? @type "^[A-Z]"))
 
@@ -146,38 +118,26 @@
 [
   "case"
   "class"
-  "enum"
-  "extends"
-  "derives"
-  "finally"
-;; `forSome` existential types not implemented yet
-;; `macro` not implemented yet
-  "object"
-  "override"
-  "package"
-  "trait"
-  "type"
-  "val"
-  "var"
-  "with"
-  "given"
-  "using"
   "end"
-  "implicit"
-  "extension"
+  "enum"
+  "finally"
+  "instance"
+  "let"
+  "let*"
+  "mod"
+  "namespace"
+  "region"
+  "type"
+  "use"
   "with"
 ] @keyword
 
 [
-  "abstract"
-  "final"
   "lazy"
   "sealed"
-  "private"
-  "protected"
+  "pub"
+  "lawful"
 ] @type.qualifier
-
-(inline_modifier) @storageclass
 
 (null_literal) @constant.builtin
 
@@ -213,6 +173,9 @@
 [
   "do"
   "for"
+  "forA"
+  "forM"
+  "foreach"
   "while"
   "yield"
 ] @repeat
@@ -225,7 +188,7 @@
  "@"
 ] @operator
 
-["import" "export"] @include
+["import" "use"] @include
 
 [
   "try"
