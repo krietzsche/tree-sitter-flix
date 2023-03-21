@@ -652,6 +652,7 @@ module.exports = grammar({
       $.while_expression,
       $.for_expression,
       $._simple_expression,
+      $.do_expression,
       $.match_expression,
       $.region_expression,
     ),
@@ -719,6 +720,11 @@ module.exports = grammar({
       'match',
       field('value', $._simple_expression),
       field('body', choice( $.case_block, $.indented_cases ))
+    )),
+
+    do_expression: $ => prec.right(PREC.control, seq(
+      'do',
+      field('body', $._indentable_expression)
     )),
 
     region_expression: $ => prec.right(PREC.control, seq(
