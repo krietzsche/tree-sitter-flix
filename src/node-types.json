@@ -148,6 +148,10 @@
         "named": true
       },
       {
+        "type": "do_expression",
+        "named": true
+      },
+      {
         "type": "field_expression",
         "named": true
       },
@@ -1183,6 +1187,30 @@
         "types": [
           {
             "type": "type_parameters",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "do_expression",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          },
+          {
+            "type": "indented_block",
+            "named": true
+          },
+          {
+            "type": "indented_cases",
             "named": true
           }
         ]
