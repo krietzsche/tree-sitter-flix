@@ -225,7 +225,6 @@ module.exports = grammar({
       field('name', $._identifier),
       field('type_parameters', optional($.type_parameters)),
       optional($.annotation),
-      optional($.access_modifier)
     )),
 
     instance_definition: $ => seq(
@@ -400,29 +399,12 @@ module.exports = grammar({
     )),
 
     modifiers: $ => repeat1(choice(
-      'sealed',
       'lazy',
       'lawful',
-      $.access_modifier,
-      $.infix_modifier,
-      $.open_modifier,
-      $.transparent_modifier
-    )),
-
-    access_modifier: $ => prec.left(seq(
+      'sealed',
+      'override',
       'pub',
-      optional($.access_qualifier),
     )),
-
-    access_qualifier: $ => seq(
-      '[',
-      $._identifier,
-      ']',
-    ),
-
-    infix_modifier: $ => 'infix',
-    open_modifier: $ => 'open',
-    transparent_modifier: $ => 'transparent',
 
     /**
      * InheritClauses    ::=  ['extends' ConstrApps] ['derives' QualId {',' QualId}]
@@ -1138,7 +1120,7 @@ module.exports = grammar({
      */
     for_expression: $ => choice(
       prec.right(PREC.control, seq(
-        choice('for', 'forA', 'forM', 'foreach'),
+        choice('for', 'forA', 'forM', 'foreach', 'par'),
         field('enumerators', choice(
           seq("(", $.enumerators, ")"),
           seq("{", $.enumerators, "}"),

@@ -110,11 +110,6 @@
 
 ;; keywords
 
-(opaque_modifier) @type.qualifier
-(infix_modifier) @keyword
-(transparent_modifier) @type.qualifier
-(open_modifier) @type.qualifier
-
 [
   "case"
   "class"
@@ -134,9 +129,10 @@
 
 [
   "lazy"
-  "sealed"
-  "pub"
   "lawful"
+  "sealed"
+  "override"
+  "pub"
 ] @type.qualifier
 
 (null_literal) @constant.builtin
