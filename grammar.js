@@ -310,7 +310,7 @@ module.exports = grammar({
     _start_let: $ => seq(
       repeat($.annotation),
       optional($.modifiers),
-      choice('let', 'let*'),
+      choice('let', 'forM'),
     ),
 
     let_definition: $ => prec(PREC.binding_def, seq(
