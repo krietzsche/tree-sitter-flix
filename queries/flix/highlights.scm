@@ -151,7 +151,6 @@
   "else"
   "if"
   "match"
-  "then"
 ] @conditional
 
 [
@@ -171,11 +170,11 @@
 
 [
   "do"
-  "for"
+  "while"
+  "foreach"
   "forA"
   "forM"
-  "foreach"
-  "while"
+  "par"
   "yield"
 ] @repeat
 

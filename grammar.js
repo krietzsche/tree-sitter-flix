@@ -347,7 +347,6 @@ module.exports = grammar({
       $._function_constructor,
       choice(
         seq('=', field('body', $._indentable_expression)),
-        field('body', $.block),
       )
     ),
 
@@ -369,12 +368,6 @@ module.exports = grammar({
 
     opaque_modifier: $ => 'opaque',
 
-    /**
-     * ConstrApp         ::=  SimpleType1 {Annotation} {ParArgumentExprs}
-     *
-     * Note: It would look more elegant if we could make seq(choice(), optional(arguments)),
-     * but that doesn't seem to work.
-     */
     _constructor_application: $ => prec.left(PREC.constructor_app, choice(
       $._annotated_type,
       $.compound_type,
@@ -668,7 +661,6 @@ module.exports = grammar({
       $.match_expression,
       $.region_expression,
       $.query_expression,
-      $.datalog_block,
     ),
 
     /**
@@ -697,6 +689,7 @@ module.exports = grammar({
       $.wildcard,
       $.block,
       $.case_block,
+      $.datalog_block,
       $.instance_expression,
       $.parenthesized_expression,
       $.field_expression,
@@ -716,10 +709,7 @@ module.exports = grammar({
 
     if_expression: $ => prec.right(PREC.control, seq(
       'if',
-      field('condition', choice(
-        $.parenthesized_expression,
-        seq($._indentable_expression, 'then'),
-      )),
+      field('condition', $.parenthesized_expression),
       field('consequence', $._indentable_expression),
       optional(seq(
         'else',
@@ -732,8 +722,8 @@ module.exports = grammar({
      */
     match_expression: $ => prec.right(PREC.control, seq(
       'match',
-      field('value', $._simple_expression),
-      field('body', choice( $.case_block, $.indented_cases ))
+      field('value', $.expression),
+      field('body', $._indentable_expression)
     )),
 
     do_expression: $ => prec.right(PREC.control, seq(
@@ -1156,37 +1146,29 @@ module.exports = grammar({
       )),
     )),
 
-    /*
-     *  ForExpr           ::=  'for' '(' Enumerators0 ')' {nl} ['do' | 'yield'] Expr
-     *                      |  'for' '{' Enumerators0 '}' {nl} ['do' | 'yield'] Expr
-     *                      |  'for'     Enumerators0          ('do' | 'yield') Expr
-     */
-    for_expression: $ => choice(
+
+    for_expression: $ => choice( $.foreach_expression, $.foreach_yield_expression),
+    
+    foreach_expression: $ => 
       prec.right(PREC.control, seq(
-        choice('for', 'forA', 'forM', 'foreach', 'par'),
-        field('enumerators', choice(
-          seq("(", $.enumerators, ")"),
-          seq("{", $.enumerators, "}"),
-        )),
-        choice(
-          seq(field('body', $.expression)),
-          seq('yield', field('body', $._indentable_expression)),
-        ),
-      )),
-      prec.right(PREC.control, seq(
-        choice('for', 'forA', 'forM', 'foreach'),
+        choice('foreach'),
         field('enumerators', $.enumerators),
-        choice(
-          seq('do', field('body', $._indentable_expression)),
-          seq('yield', field('body', $._indentable_expression)),
-        ),
+        field('body', $._indentable_expression),
       )),
-    ),
+
+    foreach_yield_expression: $ => 
+      prec.right(PREC.control, seq(
+        choice('foreach', 'forA', 'forM', 'par'),
+        field('enumerators', $.enumerators),
+        seq('yield', field('body', $._indentable_expression)),
+      )),
 
     enumerators: $ => choice(
       seq(
+        '(',
         sep1($._semicolon, $.enumerator),
-        optional($._automatic_semicolon)
+        optional($._automatic_semicolon),
+        ')'
       ),
       seq(
         $._indent,
