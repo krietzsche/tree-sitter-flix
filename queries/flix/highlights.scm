@@ -118,10 +118,12 @@
   "finally"
   "instance"
   "let"
-  "let*"
   "mod"
   "namespace"
   "region"
+  "query"
+  "select"
+  "from"
   "type"
   "use"
   "with"
@@ -164,6 +166,7 @@
 [
  "."
  ","
+ ";"
 ] @punctuation.delimiter
 
 [

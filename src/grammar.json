@@ -836,18 +836,6 @@
                 "type": "BLANK"
               }
             ]
-          },
-          {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "access_modifier"
-              },
-              {
-                "type": "BLANK"
-              }
-            ]
           }
         ]
       }
@@ -1221,7 +1209,7 @@
             },
             {
               "type": "STRING",
-              "value": "let*"
+              "value": "forM"
             }
           ]
         }
@@ -1712,10 +1700,6 @@
         "members": [
           {
             "type": "STRING",
-            "value": "sealed"
-          },
-          {
-            "type": "STRING",
             "value": "lazy"
           },
           {
@@ -1723,77 +1707,19 @@
             "value": "lawful"
           },
           {
-            "type": "SYMBOL",
-            "name": "access_modifier"
+            "type": "STRING",
+            "value": "sealed"
           },
           {
-            "type": "SYMBOL",
-            "name": "infix_modifier"
+            "type": "STRING",
+            "value": "override"
           },
-          {
-            "type": "SYMBOL",
-            "name": "open_modifier"
-          },
-          {
-            "type": "SYMBOL",
-            "name": "transparent_modifier"
-          }
-        ]
-      }
-    },
-    "access_modifier": {
-      "type": "PREC_LEFT",
-      "value": 0,
-      "content": {
-        "type": "SEQ",
-        "members": [
           {
             "type": "STRING",
             "value": "pub"
-          },
-          {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "access_qualifier"
-              },
-              {
-                "type": "BLANK"
-              }
-            ]
           }
         ]
       }
-    },
-    "access_qualifier": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "["
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_identifier"
-        },
-        {
-          "type": "STRING",
-          "value": "]"
-        }
-      ]
-    },
-    "infix_modifier": {
-      "type": "STRING",
-      "value": "infix"
-    },
-    "open_modifier": {
-      "type": "STRING",
-      "value": "open"
-    },
-    "transparent_modifier": {
-      "type": "STRING",
-      "value": "transparent"
     },
     "with_clause": {
       "type": "PREC_LEFT",
@@ -2075,6 +2001,70 @@
         ]
       }
     },
+    "_datalog_block": {
+      "type": "PREC_LEFT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "datalog_fact"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "datalog_clause"
+                  }
+                ]
+              },
+              {
+                "type": "REPEAT",
+                "content": {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "comma"
+                    },
+                    {
+                      "type": "CHOICE",
+                      "members": [
+                        {
+                          "type": "SYMBOL",
+                          "name": "datalog_fact"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "datalog_clause"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "comma"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        ]
+      }
+    },
     "_indentable_expression": {
       "type": "CHOICE",
       "members": [
@@ -2105,6 +2095,31 @@
             {
               "type": "SYMBOL",
               "name": "_block"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
+    "datalog_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "#{"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_datalog_block"
             },
             {
               "type": "BLANK"
@@ -2953,6 +2968,77 @@
         }
       ]
     },
+    "datalog_fact": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "datalog_predicate"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "comma"
+        }
+      ]
+    },
+    "datalog_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "datalog_predicate"
+        },
+        {
+          "type": "STRING",
+          "value": ":-"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "datalog_predicate"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "SYMBOL",
+                "name": "datalog_predicate"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "comma"
+        }
+      ]
+    },
+    "datalog_predicate": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "functor",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "arguments",
+          "content": {
+            "type": "SYMBOL",
+            "name": "arguments"
+          }
+        }
+      ]
+    },
     "expression": {
       "type": "CHOICE",
       "members": [
@@ -3015,6 +3101,14 @@
         {
           "type": "SYMBOL",
           "name": "region_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "query_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "datalog_block"
         }
       ]
     },
@@ -3273,6 +3367,68 @@
               "type": "SYMBOL",
               "name": "_indentable_expression"
             }
+          }
+        ]
+      }
+    },
+    "query_expression": {
+      "type": "PREC_RIGHT",
+      "value": 1,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "query"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "identifier"
+                  },
+                  {
+                    "type": "REPEAT",
+                    "content": {
+                      "type": "SEQ",
+                      "members": [
+                        {
+                          "type": "STRING",
+                          "value": ","
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "identifier"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          },
+          {
+            "type": "STRING",
+            "value": "select"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "expression"
+          },
+          {
+            "type": "STRING",
+            "value": "from"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "expression"
           }
         ]
       }
@@ -4767,6 +4923,10 @@
         }
       ]
     },
+    "comma": {
+      "type": "STRING",
+      "value": "."
+    },
     "null_literal": {
       "type": "STRING",
       "value": "null"
@@ -4933,6 +5093,10 @@
                   {
                     "type": "STRING",
                     "value": "foreach"
+                  },
+                  {
+                    "type": "STRING",
+                    "value": "par"
                   }
                 ]
               },

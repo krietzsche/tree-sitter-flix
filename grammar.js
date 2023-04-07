@@ -442,6 +442,14 @@ module.exports = grammar({
       optional($._semicolon),
     )),
 
+    _datalog_block: $ => prec.left(seq(
+      sep1($.comma, choice(
+        $.datalog_fact,
+        $.datalog_clause,
+      )),
+      optional($.comma),
+    )),
+
     _indentable_expression: $ => choice(
       $.indented_block,
       $.indented_cases,
@@ -453,6 +461,13 @@ module.exports = grammar({
       optional($._block),
       '}'
     ),
+
+    datalog_block: $ => seq(
+      '#{',
+      optional($._datalog_block),
+      '}'
+    ),
+
 
     indented_block: $ => prec.left(PREC.control, seq(
       $._indent,
@@ -621,6 +636,21 @@ module.exports = grammar({
     // ---------------------------------------------------------------
     // Expressions
 
+    datalog_fact: $ => seq(
+      $.datalog_predicate,
+      $.comma
+    ),
+    datalog_clause: $ => seq(
+      $.datalog_predicate,
+      ':-',
+      $.datalog_predicate,
+      repeat(seq(',', $.datalog_predicate)),
+      $.comma
+    ),
+    datalog_predicate: $ => seq(
+        field('functor', $.identifier),
+        field('arguments', $.arguments),
+    ),
     expression: $ => choice(
       $.if_expression,
       $.try_expression,
@@ -637,6 +667,8 @@ module.exports = grammar({
       $.do_expression,
       $.match_expression,
       $.region_expression,
+      $.query_expression,
+      $.datalog_block,
     ),
 
     /**
@@ -713,6 +745,15 @@ module.exports = grammar({
       'region',
       field('value', $.expression),
       field('body', $._indentable_expression)
+    )),
+
+    query_expression: $ => prec.right(PREC.control, seq(
+      'query',
+      commaSep($.identifier),
+      'select',
+      $.expression,
+      'from',
+      $.expression
     )),
 
     try_expression: $ => prec.right(PREC.control, seq(
@@ -1087,6 +1128,8 @@ module.exports = grammar({
       ';',
       $._automatic_semicolon
     ),
+
+    comma: $ => '.',
 
     null_literal: $ => 'null',
 
