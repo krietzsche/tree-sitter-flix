@@ -477,6 +477,7 @@ module.exports = grammar({
       $.function_type,
       $.compound_type,
       $.infix_type,
+      $.effect_type,
       $._annotated_type,
       $.literal_type,
       alias($.template_body, $.structural_type)
@@ -501,6 +502,12 @@ module.exports = grammar({
       field('base', $._annotated_type),
       repeat1(seq('with', field('extra', $._annotated_type))),
       // TODO: Refinement.
+    )),
+
+    effect_type: $ => prec.left(PREC.postfix, seq(
+      field('left', $._type),
+      '\\',
+      field('right', $._type)
     )),
 
     infix_type: $ => prec.left(PREC.infix, seq(
@@ -688,6 +695,7 @@ module.exports = grammar({
       $.instance_expression,
       $.parenthesized_expression,
       $.field_expression,
+      $.lazy_expression,
       $.generic_function,
       $.call_expression,
     ),
@@ -844,11 +852,11 @@ module.exports = grammar({
       field('field', $._identifier)
     )),
 
-    /**
-     *   SimpleExpr        ::=  SimpleRef
-     *                      |  'new' ConstrApp {'with' ConstrApp} [TemplateBody]
-     *                      |  'new' TemplateBody
-     */
+    lazy_expression: $ => prec.left(PREC.field, seq(
+      'lazy',
+      field('value', $._simple_expression),
+    )),
+
     instance_expression: $ => choice(
       prec.dynamic(0, seq(
         'new',
