@@ -128,12 +128,12 @@ module.exports = grammar({
       optional($._semicolon),
     )),
 
-    enum_case_definitions: $ => seq(
-      'case',
-      commaSep1($.simple_enum_case)
-    ),
+    enum_case_definitions: $ => commaSep1($.simple_enum_case),
 
-    simple_enum_case: $ => field('name', $._pattern),
+    simple_enum_case: $ => seq(
+      'case',
+      field('name', $._pattern)
+    ),
 
     mod_definition: $ => seq(
       choice( 'mod', 'namespace'),
@@ -153,6 +153,7 @@ module.exports = grammar({
 
     import_declaration: $ => prec.left(seq(
       'import',
+      optional('static'),
       sep1(',', $._namespace_expression)
     )),
 
