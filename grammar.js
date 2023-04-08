@@ -30,12 +30,6 @@ module.exports = grammar({
     $.comment
   ],
 
-  supertypes: $ => [
-    $.expression,
-    $._definition,
-    $._pattern,
-  ],
-
   externals: $ => [
     $._automatic_semicolon,
     $._indent,
@@ -318,7 +312,7 @@ module.exports = grammar({
       field('pattern', $._pattern),
       optional(seq(':', field('type', $._type))),
       '=',
-      field('value', $._indentable_expression)
+      field('value', $._body_expression)
     )),
 
     type_definition: $ => prec.left(seq(
@@ -346,7 +340,7 @@ module.exports = grammar({
       'def',
       $._function_constructor,
       choice(
-        seq('=', field('body', $._indentable_expression)),
+        seq('=', field('body', $._body_expression)),
       )
     ),
 
@@ -443,11 +437,12 @@ module.exports = grammar({
       optional($.comma),
     )),
 
-    _indentable_expression: $ => choice(
+    _body_expression: $ => prec.left(PREC.control, choice(
+      $.block,
+      $._block,
       $.indented_block,
       $.indented_cases,
-      $.expression,
-    ),
+    )),
 
     block: $ => seq(
       '{',
@@ -645,6 +640,9 @@ module.exports = grammar({
         field('arguments', $.arguments),
     ),
     expression: $ => choice(
+      $.block,
+      $.case_block,
+      $.datalog_block,
       $.if_expression,
       $.try_expression,
       $.assignment_expression,
@@ -687,9 +685,6 @@ module.exports = grammar({
       $.unit,
       $.tuple_expression,
       $.wildcard,
-      $.block,
-      $.case_block,
-      $.datalog_block,
       $.instance_expression,
       $.parenthesized_expression,
       $.field_expression,
@@ -710,10 +705,10 @@ module.exports = grammar({
     if_expression: $ => prec.right(PREC.control, seq(
       'if',
       field('condition', $.parenthesized_expression),
-      field('consequence', $._indentable_expression),
+      field('consequence', $._body_expression),
       optional(seq(
         'else',
-        field('alternative', $._indentable_expression),
+        field('alternative', $._body_expression),
       )),
     )),
 
@@ -723,18 +718,18 @@ module.exports = grammar({
     match_expression: $ => prec.right(PREC.control, seq(
       'match',
       field('value', $.expression),
-      field('body', $._indentable_expression)
+      field('body', $._body_expression)
     )),
 
     do_expression: $ => prec.right(PREC.control, seq(
       'do',
-      field('body', $._indentable_expression)
+      field('body', $._body_expression)
     )),
 
     region_expression: $ => prec.right(PREC.control, seq(
       'region',
       field('value', $.expression),
-      field('body', $._indentable_expression)
+      field('body', $._body_expression)
     )),
 
     query_expression: $ => prec.right(PREC.control, seq(
@@ -748,7 +743,7 @@ module.exports = grammar({
 
     try_expression: $ => prec.right(PREC.control, seq(
       'try',
-      field('body', $._indentable_expression),
+      field('body', $._body_expression),
       optional($.catch_clause),
       optional($.finally_clause)
     )),
@@ -756,9 +751,9 @@ module.exports = grammar({
     /*
      *   Catches           ::=  'catch' (Expr | ExprCaseClause)
      */
-    catch_clause: $ => prec.right(seq('catch', $._indentable_expression)),
+    catch_clause: $ => prec.right(seq('catch', $._body_expression)),
 
-    finally_clause: $ => prec.right(seq('finally', $._indentable_expression)),
+    finally_clause: $ => prec.right(seq('finally', $._body_expression)),
 
     binding: $ => prec.dynamic(PREC.binding, seq(
       field('name', $._identifier),
@@ -1141,8 +1136,8 @@ module.exports = grammar({
       )),
       prec.right(seq(
         'while',
-        field('condition', seq($._indentable_expression, 'do')),
-        field('body', $._indentable_expression)
+        field('condition', seq($._body_expression, 'do')),
+        field('body', $._body_expression)
       )),
     )),
 
@@ -1153,14 +1148,14 @@ module.exports = grammar({
       prec.right(PREC.control, seq(
         choice('foreach'),
         field('enumerators', $.enumerators),
-        field('body', $._indentable_expression),
+        field('body', $._body_expression),
       )),
 
     foreach_yield_expression: $ => 
       prec.right(PREC.control, seq(
         choice('foreach', 'forA', 'forM', 'par'),
         field('enumerators', $.enumerators),
-        seq('yield', field('body', $._indentable_expression)),
+        seq('yield', field('body', $._body_expression)),
       )),
 
     enumerators: $ => choice(

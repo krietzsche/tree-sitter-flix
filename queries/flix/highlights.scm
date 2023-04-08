@@ -66,7 +66,7 @@
  (#lua-match? @constructor "^[A-Z]"))
 
 (generic_function
-  function: (identifier) @function.call)
+  function: (expression) @type_arguments)
 
 (interpolated_string_expression
   interpolator: (identifier) @function.call)
