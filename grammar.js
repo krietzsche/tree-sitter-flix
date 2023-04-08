@@ -76,7 +76,6 @@ module.exports = grammar({
 
     _top_level_definition: $ => choice(
       $._definition,
-      $._end_marker,
     ),
 
     _definition: $ => choice(
@@ -100,6 +99,11 @@ module.exports = grammar({
       field('with', optional($.with_clause)),
       field('body', $.enum_body)
     ),
+
+    _enum_constructor: $ => prec.right(seq(
+      field('name', $._identifier),
+      field('parameters', optional($.parameters)),
+    )),
 
     enum_body: $ => choice(
       prec.left(
@@ -205,17 +209,12 @@ module.exports = grammar({
     class_definition: $ => prec.left(seq(
       repeat($.annotation),
       optional($.modifiers),
-      optional('case'),
       'class',
       $._class_constructor,
       field('with', optional($.with_clause)),
       field('body', optional($.template_body))
     )),
 
-    /**
-     * ClassConstr       ::=  [ClsTypeParamClause] [ConstrMods] ClsParamClauses
-     * ConstrMods        ::=  {Annotation} [AccessModifier]
-     */
     _class_constructor: $ => prec.right(seq(
       field('name', $._identifier),
       field('type_parameters', optional($.type_parameters)),
@@ -228,7 +227,7 @@ module.exports = grammar({
       'instance',
       $._class_constructor,
       field('with', optional($.with_clause)),
-      field('body', $.enum_body)
+      field('body', $.template_body)
     ),
 
     // The EBNF makes a distinction between function type parameters and other
@@ -291,11 +290,6 @@ module.exports = grammar({
       $._outdent,
     )),
 
-    _end_marker: $ => prec.left(PREC.end_marker, seq(
-      'end',
-      alias($._identifier, '_end_ident'),
-    )),
-
     annotation: $ => prec.right(seq(
       '@',
       field('name', $._simple_type),
@@ -321,6 +315,7 @@ module.exports = grammar({
       optional($.modifiers),
       optional($.opaque_modifier),
       'type',
+      optional('alias'),
       $._type_constructor,
       optional(
         seq(
@@ -425,7 +420,6 @@ module.exports = grammar({
       sep1($._semicolon, choice(
         $.expression,
         $._definition,
-        $._end_marker,
       )),
       optional($._semicolon),
     )),
@@ -458,10 +452,9 @@ module.exports = grammar({
       $._indent,
       $._block,
       $._outdent,
-      optional($._end_marker),
     )),
 
-    indented_cases: $ => prec.left(PREC.end_marker, seq(
+    indented_cases: $ => prec.left(PREC.control, seq(
       $._indent,
       repeat1($.case_clause),
       $._outdent,
