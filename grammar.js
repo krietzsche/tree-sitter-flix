@@ -431,11 +431,7 @@ module.exports = grammar({
     )),
 
     _datalog_block: $ => prec.left(seq(
-      sep1($.comma, choice(
-        $.datalog_fact,
-        $.datalog_clause,
-      )),
-      optional($.comma),
+      repeat1(  $.datalog_clause ),
     )),
 
     _body_expression: $ => prec.left(PREC.control, choice(
@@ -632,20 +628,26 @@ module.exports = grammar({
     // ---------------------------------------------------------------
     // Expressions
 
-    datalog_fact: $ => seq(
-      $.datalog_predicate,
-      $.comma
-    ),
     datalog_clause: $ => seq(
-      $.datalog_predicate,
-      ':-',
-      $.datalog_predicate,
-      repeat(seq(',', $.datalog_predicate)),
-      $.comma
+      field('head',$.datalog_predicate),
+      optional(field('body',$.datalog_body)),
+      $.dot
     ),
     datalog_predicate: $ => seq(
-        field('functor', $.identifier),
-        field('arguments', $.arguments),
+      // optional( field('polarity'), choice( 'not', 'fix' )),
+      field('functor', $.identifier),
+     '(',
+      commaOrSemiSep($.atom),
+     ')'
+    ),
+    datalog_body: $ => seq(
+      ':-',
+      trailingCommaSep($.datalog_predicate)
+    ),
+    atom: $ => choice(
+      $.identifier,
+      $.string,
+      $.interpolated_string
     ),
     expression: $ => choice(
       $.block,
@@ -1123,7 +1125,8 @@ module.exports = grammar({
       $._automatic_semicolon
     ),
 
-    comma: $ => '.',
+    comma: $ => ',',
+    dot: $ => '.',
 
     null_literal: $ => 'null',
 
@@ -1208,6 +1211,14 @@ module.exports = grammar({
     ))
   }
 })
+
+function commaOrSemiSep(rule) {
+  return optional(commaOrSemiSep1(rule))
+}
+
+function commaOrSemiSep1(rule) {
+  return sep1(choice(',',';'), rule)
+}
 
 function commaSep(rule) {
   return optional(commaSep1(rule))
