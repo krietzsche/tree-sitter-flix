@@ -85,6 +85,7 @@ module.exports = grammar({
       $.function_definition,
       $.class_definition,
       $.instance_definition,
+      $.rel_definition,
       $.function_declaration,
       $.import_declaration,
       $.use_declaration,
@@ -109,7 +110,7 @@ module.exports = grammar({
     import_declaration: $ => prec.left(seq(
       'import',
       optional('static'),
-      sep1(',', $._namespace_expression)
+      $._type
     )),
 
     _namespace_expression: $ => prec.left(seq(
@@ -119,10 +120,6 @@ module.exports = grammar({
         choice(
           $.namespace_wildcard,
           $.namespace_selectors,
-          // Only allowed in Scala 3 
-          // ImportExpr        ::= 
-          //    SimpleRef {‘.’ id} ‘.’ ImportSpec |  SimpleRef ‘as’ id
-          $.as_renamed_identifier
         ),
       )),
     )),
@@ -136,8 +133,6 @@ module.exports = grammar({
         trailingCommaSep1(choice(
           $.namespace_wildcard,
           $.identifier,
-          $.arrow_renamed_identifier,
-          $.as_renamed_identifier
         )),
       '}'
     ),
@@ -145,30 +140,13 @@ module.exports = grammar({
     // deprecated: Remove when highlight query is updated for Neovim
     _import_selectors: $ => alias($.namespace_selectors, $.import_selectors),
 
-    arrow_renamed_identifier: $ => seq(
-      field('name', $.identifier),
-      '=>',
-      field('alias', choice($.identifier, $.wildcard))
-    ),
-
-    as_renamed_identifier: $ => seq(
-      field('name', $.identifier),
-      'as',
-      field('alias', choice($.identifier, $.wildcard))
-    ),
-
     enum_definition: $ => prec.left(seq(
       repeat($.annotation),
       optional($.modifiers),
       'enum',
-      $._enum_constructor,
+      $._constructor_application,
       field('with', optional($.with_clause)),
       field('body', optional($.enum_body))
-    )),
-
-    _enum_constructor: $ => prec.right(seq(
-      field('name', $._identifier),
-      field('parameters', optional($.parameters)),
     )),
 
     enum_body: $ => choice(
@@ -227,6 +205,11 @@ module.exports = grammar({
       $._class_constructor,
       field('with', optional($.with_clause)),
       field('body', $.template_body)
+    )),
+
+    rel_definition: $ => prec.left(seq(
+      'rel',
+      $.datalog_predicate,
     )),
 
     type_parameters: $ => seq(
@@ -370,7 +353,6 @@ module.exports = grammar({
 
     _constructor_applications: $ => prec.left(choice(
       commaSep1($._constructor_application),
-      sep1('with', $._constructor_application),
     )),
 
     modifiers: $ => repeat1(choice(
@@ -462,10 +444,10 @@ module.exports = grammar({
       $.effect_type,
       $._annotated_type,
       $.literal_type,
+      $.datalog_type,
       alias($.template_body, $.structural_type)
     ),
 
-    // TODO: Make this a visible type, so that _type can be a supertype.
     _annotated_type: $ => prec.right(seq(
       $._simple_type,
       repeat($.annotation),
@@ -485,6 +467,12 @@ module.exports = grammar({
       repeat1(seq('with', field('extra', $._annotated_type))),
       // TODO: Refinement.
     )),
+
+    datalog_type: $ => seq(
+      '#{',
+      commaSep($.identifier),
+      '}'
+    ),
 
     effect_type: $ => prec.left(PREC.postfix, seq(
       field('left', $._type),
@@ -632,7 +620,8 @@ module.exports = grammar({
     atom: $ => choice(
       $.identifier,
       $.string,
-      $.interpolated_string
+      $.interpolated_string,
+      seq( $.identifier, ':', $._type )
     ),
     expression: $ => choice(
       $.block,

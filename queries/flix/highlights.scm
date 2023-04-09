@@ -39,16 +39,6 @@
 
 ; imports
 
-(import_declaration
-  path: (identifier) @namespace)
-((stable_identifier (identifier) @namespace))
-
-((import_declaration
-  path: (identifier) @type) (#lua-match? @type "^[A-Z]"))
-((stable_identifier (identifier) @type) (#lua-match? @type "^[A-Z]"))
-
-((namespace_selectors (identifier) @type) (#lua-match? @type "^[A-Z]"))
-
 ; method invocation
 
 (call_expression
@@ -113,17 +103,17 @@
 [
   "case"
   "class"
-  "end"
   "enum"
   "finally"
+  "from"
   "instance"
   "let"
   "mod"
   "namespace"
-  "region"
   "query"
+  "region"
+  "rel"
   "select"
-  "from"
   "type"
   "use"
   "with"
@@ -134,6 +124,7 @@
   "lawful"
   "sealed"
   "override"
+  "static"
   "pub"
 ] @type.qualifier
 
