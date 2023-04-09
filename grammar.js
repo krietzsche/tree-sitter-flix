@@ -18,7 +18,6 @@ const PREC = {
   compound: 7,
   call: 8,
   field: 8,
-  end_marker: 9,
   binding: 10,
 }
 
@@ -91,54 +90,6 @@ module.exports = grammar({
       $.use_declaration,
     ),
 
-    enum_definition: $ => seq(
-      repeat($.annotation),
-      optional($.modifiers),
-      'enum',
-      $._class_constructor,
-      field('with', optional($.with_clause)),
-      field('body', $.enum_body)
-    ),
-
-    _enum_constructor: $ => prec.right(seq(
-      field('name', $._identifier),
-      field('parameters', optional($.parameters)),
-    )),
-
-    enum_body: $ => choice(
-      prec.left(
-        PREC.control,
-        seq(
-          ':', 
-          $._indent, 
-          $._enum_block, 
-          $._outdent
-        )
-      ),
-      seq(
-        '{',
-        // TODO: self type
-        optional($._enum_block),
-        '}'
-      )
-    ),
-
-    _enum_block: $ => prec.left(seq(
-      sep1($._semicolon, choice(
-        $.enum_case_definitions,
-        $.expression,
-        $._definition
-      )),
-      optional($._semicolon),
-    )),
-
-    enum_case_definitions: $ => commaSep1($.simple_enum_case),
-
-    simple_enum_case: $ => seq(
-      'case',
-      field('name', $._pattern)
-    ),
-
     mod_definition: $ => seq(
       choice( 'mod', 'namespace'),
       field('name', $.mod_identifier),
@@ -206,6 +157,54 @@ module.exports = grammar({
       field('alias', choice($.identifier, $.wildcard))
     ),
 
+    enum_definition: $ => prec.left(seq(
+      repeat($.annotation),
+      optional($.modifiers),
+      'enum',
+      $._enum_constructor,
+      field('with', optional($.with_clause)),
+      field('body', optional($.enum_body))
+    )),
+
+    _enum_constructor: $ => prec.right(seq(
+      field('name', $._identifier),
+      field('parameters', optional($.parameters)),
+    )),
+
+    enum_body: $ => choice(
+      prec.left(
+        PREC.control,
+        seq(
+          ':', 
+          $._indent, 
+          $._enum_block, 
+          $._outdent
+        )
+      ),
+      seq(
+        '{',
+        // TODO: self type
+        optional($._enum_block),
+        '}'
+      )
+    ),
+
+    _enum_block: $ => prec.left(seq(
+      sep1($._semicolon, choice(
+        $.enum_case_definitions,
+        $.expression,
+        $._definition
+      )),
+      optional($._semicolon),
+    )),
+
+    enum_case_definitions: $ => commaSep1($.simple_enum_case),
+
+    simple_enum_case: $ => seq(
+      'case',
+      field('name', $._pattern)
+    ),
+
     class_definition: $ => prec.left(seq(
       repeat($.annotation),
       optional($.modifiers),
@@ -221,19 +220,15 @@ module.exports = grammar({
       optional($.annotation),
     )),
 
-    instance_definition: $ => seq(
+    instance_definition: $ => prec.left(seq(
       repeat($.annotation),
       optional($.modifiers),
       'instance',
       $._class_constructor,
       field('with', optional($.with_clause)),
       field('body', $.template_body)
-    ),
+    )),
 
-    // The EBNF makes a distinction between function type parameters and other
-    // type parameters as you can't specify variance on function type
-    // parameters. This isn't important to the structure of the AST so we don't
-    // make that distinction.
     type_parameters: $ => seq(
       '[',
       trailingCommaSep1($._variant_type_parameter),
@@ -264,9 +259,6 @@ module.exports = grammar({
       field('type_parameters', optional($.type_parameters)),
     ),
 
-    /*
-     * TemplateBody      ::=  :<<< [SelfType] TemplateStat {semi TemplateStat} >>>
-     */
     template_body: $ => choice(
       prec.left(PREC.control, seq(
         ':',
@@ -571,7 +563,7 @@ module.exports = grammar({
       $.interpolated_string_expression,
       $.capture_pattern,
       $.tuple_pattern,
-      $.case_class_pattern,
+      $.enum_pattern,
       $.infix_pattern,
       $.alternative_pattern,
       $.typed_pattern,
@@ -579,10 +571,10 @@ module.exports = grammar({
       $.wildcard
     ),
 
-    case_class_pattern: $ => seq(
+    enum_pattern: $ => seq(
       field('type', choice($._type_identifier, $.stable_type_identifier)),
       '(',
-      field('pattern', trailingCommaSep($._pattern)),
+      field('pattern', trailingCommaSep($._type)),
       ')'
     ),
 
@@ -702,7 +694,7 @@ module.exports = grammar({
         $._identifier,
         $.wildcard,
       )),
-      '=>',
+      '->',
       $._block,
     )),
 
@@ -722,6 +714,7 @@ module.exports = grammar({
     match_expression: $ => prec.right(PREC.control, seq(
       'match',
       field('value', $.expression),
+      optional('->'),
       field('body', $._body_expression)
     )),
 
@@ -732,7 +725,7 @@ module.exports = grammar({
 
     region_expression: $ => prec.right(PREC.control, seq(
       'region',
-      field('value', $.expression),
+      field('value', $.identifier),
       field('body', $._body_expression)
     )),
 
