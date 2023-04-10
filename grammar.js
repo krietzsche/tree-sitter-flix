@@ -209,32 +209,29 @@ module.exports = grammar({
 
     rel_definition: $ => prec.left(seq(
       'rel',
-      $.datalog_predicate,
+      $.predicate_type,
+    )),
+    predicate_type: $ => seq(
+      field('functor', $._type_constructor),
+     '(',
+      commaOrSemiSep($._predicate_arg_typed),
+     ')'
+    ),
+    _predicate_arg_typed: $ => prec.left(PREC.control, seq(
+      $.identifier,
+      ':',
+      $._type,
     )),
 
     type_parameters: $ => seq(
       '[',
-      trailingCommaSep1($._variant_type_parameter),
+      trailingCommaSep1($._type_parameter),
       ']'
     ),
 
-    _variant_type_parameter: $ => seq(
+    _type_parameter: $ => seq(
       repeat($.annotation),
-      choice(
-        $.covariant_type_parameter,
-        $.contravariant_type_parameter,
-        $._type_parameter // invariant type parameter
-      )
-    ),
-
-    covariant_type_parameter: $ => seq(
-      '+',
-      $._type_parameter
-    ),
-
-    contravariant_type_parameter: $ => seq(
-      '-',
-      $._type_parameter,
+      $._type_parameter // invariant type parameter
     ),
 
     _type_parameter: $ => seq(
@@ -393,8 +390,8 @@ module.exports = grammar({
     _body_expression: $ => prec.left(PREC.control, choice(
       $.block,
       $._block,
-      $.indented_block,
-      $.indented_cases,
+      //$.indented_block,
+      //$.indented_cases,
     )),
 
     block: $ => seq(
@@ -402,7 +399,6 @@ module.exports = grammar({
       optional($._block),
       '}'
     ),
-
     _block: $ => prec.left(seq(
       sep1($._semicolon, choice(
         $.expression,
@@ -411,14 +407,14 @@ module.exports = grammar({
       optional($._semicolon),
     )),
 
-    datalog_block: $ => seq(
+    rel_block: $ => seq(
       '#{',
-      optional($._datalog_block),
+      optional($._rel_block),
       '}'
     ),
 
-    _datalog_block: $ => prec.left(seq(
-      repeat1(  $.datalog_clause ),
+    _rel_block: $ => prec.left(seq(
+      repeat1( $.rel_clause ),
     )),
 
     indented_block: $ => prec.left(PREC.control, seq(
@@ -443,7 +439,8 @@ module.exports = grammar({
       $.effect_type,
       $._annotated_type,
       $.literal_type,
-      $.datalog_type,
+      $.record_type,
+      $.rel_record_type,
       alias($.template_body, $.structural_type)
     ),
 
@@ -451,7 +448,6 @@ module.exports = grammar({
       $._simple_type,
       repeat($.annotation),
     )),
-
     _simple_type: $ => choice(
       $.generic_type,
       $.tuple_type,
@@ -460,30 +456,38 @@ module.exports = grammar({
       $._type_identifier,
       $.wildcard,
     ),
-
     compound_type: $ => prec(PREC.compound, seq(
       field('base', $._annotated_type),
       repeat1(seq('with', field('extra', $._annotated_type))),
       // TODO: Refinement.
     )),
-
-    datalog_type: $ => seq(
-      '#{',
-      commaSep($.identifier),
-      '}'
-    ),
-
     effect_type: $ => prec.left(PREC.postfix, seq(
       field('left', $._type),
       '\\',
       field('right', $._type)
     )),
-
     infix_type: $ => prec.left(PREC.infix, seq(
       field('left', choice($.compound_type, $.infix_type, $._annotated_type)),
       field('operator', $._identifier),
       field('right', choice($.compound_type, $.infix_type, $._annotated_type))
     )),
+    record_type: $ => seq(
+      '{', 
+      trailingCommaSep1($._record_arg_typed),
+      optional( seq('|', $.identifier)),
+      '}'
+    ),
+    _record_arg_typed: $ => prec.left(PREC.control, seq(
+      $.identifier,
+      '=',
+      $._type,
+    )),
+    rel_record_type: $ => seq(
+      '#{',
+      trailingCommaSep($._type),
+      optional( seq('|', $.identifier)),
+      '}'
+    ),
 
     tuple_type: $ => seq(
       '(',
@@ -550,6 +554,7 @@ module.exports = grammar({
       $.interpolated_string_expression,
       $.capture_pattern,
       $.tuple_pattern,
+      $.record_pattern,
       $.enum_pattern,
       $.infix_pattern,
       $.alternative_pattern,
@@ -589,43 +594,49 @@ module.exports = grammar({
       '|',
       $._pattern
     )),
-
     tuple_pattern: $ => seq(
       '(',
-      $._pattern,
-      repeat(seq(',', $._pattern)),
+      trailingCommaSep1($._pattern),
       ')'
     ),
-
+    record_pattern: $ => seq(
+      '{', 
+      trailingCommaSep1($._record_field),
+      '}'
+    ),
+    _record_field: $ => prec.left(PREC.control, seq(
+      $.identifier,
+      '=',
+      $.expression,
+    )),
     // ---------------------------------------------------------------
     // Expressions
 
-    datalog_clause: $ => seq(
-      field('head',$.datalog_predicate),
-      optional(field('body',$.datalog_body)),
+    rel_clause: $ => seq(
+      field('head',$.rel_fact),
+      optional(field('body',$.rel_body)),
       $.dot
     ),
-    datalog_predicate: $ => seq(
-      // optional( field('polarity'), choice( 'not', 'fix' )),
+    rel_fact: $ => seq(
+      optional( choice( 'not', 'fix' )),
       field('functor', $.identifier),
      '(',
       commaOrSemiSep($.atom),
      ')'
     ),
-    datalog_body: $ => seq(
+    rel_body: $ => seq(
       ':-',
-      trailingCommaSep($.datalog_predicate)
+      trailingCommaSep($.rel_fact)
     ),
     atom: $ => choice(
       $.identifier,
       $.string,
       $.interpolated_string,
-      seq( $.identifier, ':', $._type )
     ),
     expression: $ => choice(
       $.block,
       $.case_block,
-      $.datalog_block,
+      $.rel_block,
       $.if_expression,
       $.try_expression,
       $.assignment_expression,
@@ -800,10 +811,7 @@ module.exports = grammar({
         ),
         '=>',
       ))),
-      choice(
-        $.indented_block,
-        $.indented_cases,
-      ),
+      $.block
     )),
 
     field_expression: $ => prec.left(PREC.field, seq(
