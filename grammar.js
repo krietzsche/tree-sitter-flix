@@ -390,18 +390,6 @@ module.exports = grammar({
       optional(seq('=', field('default_value', $.expression)))
     ),
 
-    _block: $ => prec.left(seq(
-      sep1($._semicolon, choice(
-        $.expression,
-        $._definition,
-      )),
-      optional($._semicolon),
-    )),
-
-    _datalog_block: $ => prec.left(seq(
-      repeat1(  $.datalog_clause ),
-    )),
-
     _body_expression: $ => prec.left(PREC.control, choice(
       $.block,
       $._block,
@@ -415,12 +403,23 @@ module.exports = grammar({
       '}'
     ),
 
+    _block: $ => prec.left(seq(
+      sep1($._semicolon, choice(
+        $.expression,
+        $._definition,
+      )),
+      optional($._semicolon),
+    )),
+
     datalog_block: $ => seq(
       '#{',
       optional($._datalog_block),
       '}'
     ),
 
+    _datalog_block: $ => prec.left(seq(
+      repeat1(  $.datalog_clause ),
+    )),
 
     indented_block: $ => prec.left(PREC.control, seq(
       $._indent,
@@ -645,22 +644,6 @@ module.exports = grammar({
       $.query_expression,
     ),
 
-    /**
-      *  SimpleExpr        ::=  SimpleRef
-      *                      |  Literal
-      *                      |  '_'
-      *                      |  BlockExpr
-      *                      |  quoteId
-      *                      |  'new' ConstrApp {'with' ConstrApp} [TemplateBody]
-      *                      |  'new' TemplateBody
-      *                      |  '(' ExprsInParens ')'
-      *                      |  SimpleExpr '.' id
-      *                      |  SimpleExpr '.' MatchClause
-      *                      |  SimpleExpr TypeArgs
-      *                      |  SimpleExpr ArgumentExprs
-      *                      |  SimpleExpr ColonArgument
-      * TODO: ColonArgument
-      */
     _simple_expression: $ => choice(
       $.identifier,
       $.operator_identifier,
@@ -703,7 +686,6 @@ module.exports = grammar({
     match_expression: $ => prec.right(PREC.control, seq(
       'match',
       field('value', $.expression),
-      optional('->'),
       field('body', $._body_expression)
     )),
 
@@ -720,7 +702,7 @@ module.exports = grammar({
 
     query_expression: $ => prec.right(PREC.control, seq(
       'query',
-      commaSep($.identifier),
+      commaSep($.expression),
       'select',
       $.expression,
       'from',
@@ -780,7 +762,7 @@ module.exports = grammar({
         $.prefix_expression,
         $._simple_expression,
       )),
-      '=',
+      choice('=',':='),
       field('right', $.expression)
     )),
 
@@ -1160,11 +1142,6 @@ module.exports = grammar({
       ),
     ),
 
-    /**
-     *   Enumerator        ::=  Generator
-     *                       |  Guard {Guard}
-     *                       |  Pattern1 '=' Expr
-     */
     enumerator: $ => choice(
       seq(
         optional('case'),
