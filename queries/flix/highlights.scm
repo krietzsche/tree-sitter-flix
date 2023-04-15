@@ -112,6 +112,7 @@
   "namespace"
   "query"
   "region"
+  "eff"
   "rel"
   "select"
   "type"
@@ -173,7 +174,9 @@
 
 [
  "=>"
+ "->"
  "<-"
+ "\\"
  "@"
 ] @operator
 

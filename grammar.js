@@ -85,6 +85,7 @@ module.exports = grammar({
       $.function_definition,
       $.class_definition,
       $.instance_definition,
+      $.eff_definition,
       $.rel_definition,
       $.function_declaration,
       $.import_declaration,
@@ -110,7 +111,15 @@ module.exports = grammar({
     import_declaration: $ => prec.left(seq(
       'import',
       optional('static'),
-      $._type
+      $._type,
+      optional(
+        seq(
+          '(',
+          trailingCommaSep($._type),
+          ')'
+        )
+      ),
+      optional(seq(':', $._type)),
     )),
 
     _namespace_expression: $ => prec.left(seq(
@@ -207,7 +216,16 @@ module.exports = grammar({
       field('body', $.template_body)
     )),
 
+    eff_definition: $ => prec.left(seq(
+      repeat($.annotation),
+      optional($.modifiers),
+      'eff',
+      $._type,
+    )),
+
     rel_definition: $ => prec.left(seq(
+      repeat($.annotation),
+      optional($.modifiers),
       'rel',
       $.predicate_type,
     )),
@@ -307,9 +325,7 @@ module.exports = grammar({
       optional($.modifiers),
       'def',
       $._function_constructor,
-      choice(
-        seq('=', field('body', $._body_expression)),
-      )
+      seq('=', field('body', $._body_expression)),
     ),
 
     function_declaration: $ => prec.left(seq(
@@ -433,6 +449,7 @@ module.exports = grammar({
     // Types
 
     _type: $ => choice(
+      $.native_type,
       $.function_type,
       $.compound_type,
       $.infix_type,
@@ -443,7 +460,10 @@ module.exports = grammar({
       $.rel_record_type,
       alias($.template_body, $.structural_type)
     ),
-
+    native_type: $ => seq(
+      '##', 
+      $.identifier
+    ),
     _annotated_type: $ => prec.right(seq(
       $._simple_type,
       repeat($.annotation),
@@ -520,7 +540,7 @@ module.exports = grammar({
 
     function_type: $ => prec.right(seq(
       field('parameter_types', $.parameter_types),
-      '=>',
+      '->',
       field('return_type', $._type)
     )),
 
@@ -940,8 +960,6 @@ module.exports = grammar({
      * We approximate the above as:
      * /[A-Za-z\$_][A-Z\$_a-z0-9]*(_[\-!#%&*+\/\\:<=>?@\u005e\u007c~]+)?/,
      *
-     * The following is more accurate, but the state count goes over the unsigned short int, and should be comparable.
-     * /([\p{Lu}\p{Lt}\p{Nl}\p{Lo}\p{Lm}\$][\p{Lu}\p{Lt}\p{Nl}\p{Lo}\p{Lm}\$\p{Ll}_\u00AA\u00BB\u02B0-\u02B8\u02C0-\u02C1\u02E0-\u02E4\u037A\u1D78\u1D9B-\u1DBF\u2071\u207F\u2090-\u209C\u2C7C-\u2C7D\uA69C-\uA69D\uA770\uA7F8-\uA7F9\uAB5C-\uAB5F0-9]*(_[\-!#%&*+\/\\:<=>?@\u005e\u007c~]+)?|[\p{Ll}_\u00AA\u00BB\u02B0-\u02B8\u02C0-\u02C1\u02E0-\u02E4\u037A\u1D78\u1D9B-\u1DBF\u2071\u207F\u2090-\u209C\u2C7C-\u2C7D\uA69C-\uA69D\uA770\uA7F8-\uA7F9\uAB5C-\uAB5F_][\p{Lu}\p{Lt}\p{Nl}\p{Lo}\p{Lm}\$\p{Ll}_\u00AA\u00BB\u02B0-\u02B8\u02C0-\u02C1\u02E0-\u02E4\u037A\u1D78\u1D9B-\u1DBF\u2071\u207F\u2090-\u209C\u2C7C-\u2C7D\uA69C-\uA69D\uA770\uA7F8-\uA7F9\uAB5C-\uAB5F0-9]*(_[\-!#%&*+/\\:<=>?@\u005e\u007c~]+)?|[\-!#%&*+\/\\:<=>?@\u005e\u007c~]+)|[\p{Ll}_\u00AA\u00BB\u02B0-\u02B8\u02C0-\u02C1\u02E0-\u02E4\u037A\u1D78\u1D9B-\u1DBF\u2071\u207F\u2090-\u209C\u2C7C-\u2C7D\uA69C-\uA69D\uA770\uA7F8-\uA7F9\uAB5C-\uAB5F_][\p{Lu}\p{Lt}\p{Nl}\p{Lo}\p{Lm}\$\p{Ll}_\u00AA\u00BB\u02B0-\u02B8\u02C0-\u02C1\u02E0-\u02E4\u037A\u1D78\u1D9B-\u1DBF\u2071\u207F\u2090-\u209C\u2C7C-\u2C7D\uA69C-\uA69D\uA770\uA7F8-\uA7F9\uAB5C-\uAB5F0-9]*(_[\-!#%&*+\/\\:<=>?@\u005e\u007c~]+)?/,
      */
     _alpha_identifier: $ => /[\p{Lu}\p{Lt}\p{Nl}\p{Lo}\p{Lm}\$\p{Ll}_\u00AA\u00BB\u02B0-\u02B8\u02C0-\u02C1\u02E0-\u02E4\u037A\u1D78\u1D9B-\u1DBF\u2071\u207F\u2090-\u209C\u2C7C-\u2C7D\uA69C-\uA69D\uA770\uA7F8-\uA7F9\uAB5C-\uAB5F\$][\p{Lu}\p{Lt}\p{Nl}\p{Lo}\p{Lm}\$\p{Ll}_\u00AA\u00BB\u02B0-\u02B8\u02C0-\u02C1\u02E0-\u02E4\u037A\u1D78\u1D9B-\u1DBF\u2071\u207F\u2090-\u209C\u2C7C-\u2C7D\uA69C-\uA69D\uA770\uA7F8-\uA7F9\uAB5C-\uAB5F0-9\$_\p{Ll}]*(_[\-!#%&*+\/\\:<=>?@\u005e\u007c~\p{Sm}\p{So}]+)?/,
 
