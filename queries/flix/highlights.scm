@@ -24,6 +24,9 @@
 (type_identifier) @type
 (type_parameter) @type
 
+(qual_identifier) @type
+(qual_type_identifier) @type
+
 ;; mod
 
 (mod_identifier) @identifier

@@ -1,13 +1,13 @@
 const PREC = {
   control: 1,
-  stable_type_id: 2,
+  qual_type_id: 2,
   lambda: 2,
   binding_decl: 2,
   while: 2,
   binding_def: 3,
   assign: 3,
   case: 3,
-  stable_id: 4,
+  qual_id: 4,
   unit: 4,
   ascription: 4,
   postfix: 5,
@@ -460,7 +460,7 @@ module.exports = grammar({
       $.generic_type,
       $.tuple_type,
       $.singleton_type,
-      $.stable_type_identifier,
+      $.qual_type_identifier,
       $._type_identifier,
       $.wildcard,
     ),
@@ -498,20 +498,20 @@ module.exports = grammar({
       ')',
     ),
 
-    singleton_type: $ => prec.left(PREC.stable_type_id, seq(
-      choice($._identifier, $.stable_identifier),
+    singleton_type: $ => prec.left(PREC.qual_type_id, seq(
+      choice($._identifier, $.qual_identifier),
       '.',
       'type',
     )),
 
-    stable_type_identifier: $ => prec.left(PREC.stable_type_id, seq(
-      choice($._identifier, $.stable_identifier),
+    qual_type_identifier: $ => prec.left(PREC.qual_type_id, seq(
+      choice($._identifier, $.qual_identifier),
       '.',
       $._type_identifier
     )),
 
-    stable_identifier: $ => prec.left(PREC.stable_id, seq(
-      choice($._identifier, $.stable_identifier),
+    qual_identifier: $ => prec.left(PREC.qual_id, seq(
+      choice($._identifier, $.qual_identifier),
       '.',
       $._identifier
     )),
@@ -552,7 +552,7 @@ module.exports = grammar({
 
     _pattern: $ => choice(
       $._identifier,
-      $.stable_identifier,
+      $.qual_identifier,
       $.interpolated_string_expression,
       $.capture_pattern,
       $.tuple_pattern,
@@ -566,7 +566,7 @@ module.exports = grammar({
     ),
 
     enum_pattern: $ => seq(
-      field('type', choice($._type_identifier, $.stable_type_identifier)),
+      field('type', choice($._type_identifier, $.qual_type_identifier)),
       '(',
       field('pattern', trailingCommaSep($._type)),
       ')'
