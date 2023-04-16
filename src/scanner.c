@@ -17,7 +17,6 @@ enum TokenType {
   ELSE,
   CATCH,
   FINALLY,
-  EXTENDS,
   WITH,
 };
 
@@ -234,25 +233,6 @@ bool tree_sitter_flix_external_scanner_scan(void *payload, TSLexer *lexer,
       if (lexer->lookahead != 'l') return true;
       advance(lexer);
       if (lexer->lookahead != 'y') return true;
-      advance(lexer);
-      if (iswalpha(lexer->lookahead)) return true;
-      return false;
-    }
-
-    if (valid_symbols[EXTENDS]) {
-      if (lexer->lookahead != 'e') return true;
-      advance(lexer);
-      if (lexer->lookahead != 'x') return true;
-      advance(lexer);
-      if (lexer->lookahead != 't') return true;
-      advance(lexer);
-      if (lexer->lookahead != 'e') return true;
-      advance(lexer);
-      if (lexer->lookahead != 'n') return true;
-      advance(lexer);
-      if (lexer->lookahead != 'd') return true;
-      advance(lexer);
-      if (lexer->lookahead != 's') return true;
       advance(lexer);
       if (iswalpha(lexer->lookahead)) return true;
       return false;
