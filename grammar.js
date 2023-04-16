@@ -15,7 +15,6 @@ const PREC = {
   infix: 6,
   constructor_app: 7,
   prefix: 7,
-  compound: 7,
   call: 8,
   field: 8,
   binding: 10,
@@ -348,7 +347,6 @@ module.exports = grammar({
 
     _constructor_application: $ => prec.left(PREC.constructor_app, choice(
       $._annotated_type,
-      $.compound_type,
       // This adds _simple_type, but not the above intentionall/y.
       seq(
         $._simple_type,
@@ -357,11 +355,7 @@ module.exports = grammar({
       seq(
         $._annotated_type,
         field('arguments', $.arguments),
-      ),
-      seq(
-        $.compound_type,
-        field('arguments', $.arguments),
-      ),
+      )
     )),
 
     _constructor_applications: $ => prec.left(choice(
@@ -451,7 +445,6 @@ module.exports = grammar({
     _type: $ => choice(
       $.native_type,
       $.function_type,
-      $.compound_type,
       $.infix_type,
       $.effect_type,
       $._annotated_type,
@@ -476,20 +469,15 @@ module.exports = grammar({
       $._type_identifier,
       $.wildcard,
     ),
-    compound_type: $ => prec(PREC.compound, seq(
-      field('base', $._annotated_type),
-      repeat1(seq('with', field('extra', $._annotated_type))),
-      // TODO: Refinement.
-    )),
     effect_type: $ => prec.left(PREC.postfix, seq(
       field('left', $._type),
       '\\',
       field('right', $._type)
     )),
     infix_type: $ => prec.left(PREC.infix, seq(
-      field('left', choice($.compound_type, $.infix_type, $._annotated_type)),
+      field('left', choice($.infix_type, $._annotated_type)),
       field('operator', $._identifier),
-      field('right', choice($.compound_type, $.infix_type, $._annotated_type))
+      field('right', choice($.infix_type, $._annotated_type))
     )),
     record_type: $ => seq(
       '{', 
@@ -549,7 +537,6 @@ module.exports = grammar({
       $._annotated_type,
       // Prioritize a parenthesized param list over a single tuple_type.
       prec.dynamic(1, seq('(', trailingCommaSep($._param_type), ')' )),
-      $.compound_type,
       $.infix_type,
     )),
 
