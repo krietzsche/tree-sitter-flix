@@ -21,8 +21,12 @@
 
 (type_definition
   name: (type_identifier) @type.definition)
-
 (type_identifier) @type
+(type_parameter) @type
+
+;; mod
+
+(mod_identifier) @identifier
 
 ;; let definitions/declarations
 
@@ -75,8 +79,6 @@
 ; expressions
 
 (field_expression field: (identifier) @property)
-(field_expression value: (identifier) @type
- (#lua-match? @type "^[A-Z]"))
 
 (infix_expression operator: (identifier) @operator)
 (infix_expression operator: (operator_identifier) @operator)
@@ -138,6 +140,7 @@
 ;; special keywords
 
 "new" @keyword.operator
+(alias_modifier) @keyword
 
 [
   "else"
@@ -199,7 +202,6 @@
 
 (operator_identifier) @operator
 
-((identifier) @type (#lua-match? @type "^[A-Z]"))
 ((identifier) @variable.builtin
  (#lua-match? @variable.builtin "^this$"))
 

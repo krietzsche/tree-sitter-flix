@@ -56,12 +56,8 @@ module.exports = grammar({
   conflicts: $ => [
     [$.tuple_type, $.parameter_types],
     [$.binding, $._simple_expression],
-    [$.binding, $.ascription_expression],
     [$.binding, $._type_identifier],
-    [$.if_expression, $.expression],
     [$.while_expression, $._simple_expression],
-    [$.for_expression, $.infix_expression],
-    [$.if_expression],
     [$._type_identifier, $.identifier],
     [$.instance_expression],
     [$.mod_definition]
@@ -242,16 +238,16 @@ module.exports = grammar({
 
     type_parameters: $ => seq(
       '[',
-      trailingCommaSep1($._type_parameter),
+      trailingCommaSep1($.type_parameter),
       ']'
     ),
 
-    _type_parameter: $ => seq(
+    type_parameter: $ => seq(
       repeat($.annotation),
-      $._type_parameter // invariant type parameter
+      $.type_parameter // invariant type parameter
     ),
 
-    _type_parameter: $ => seq(
+    type_parameter: $ => seq(
       field('name', choice($.wildcard, $._identifier)),
       field('type_parameters', optional($.type_parameters)),
     ),
@@ -302,9 +298,8 @@ module.exports = grammar({
     type_definition: $ => prec.left(seq(
       repeat($.annotation),
       optional($.modifiers),
-      optional($.opaque_modifier),
       'type',
-      optional('alias'),
+      optional($.alias_modifier),
       $._type_constructor,
       optional(
         seq(
@@ -343,7 +338,7 @@ module.exports = grammar({
       field('with', optional($.with_clause)),
     )),
 
-    opaque_modifier: $ => 'opaque',
+    alias_modifier: $ => 'alias',
 
     _constructor_application: $ => prec.left(PREC.constructor_app, choice(
       $._annotated_type,
